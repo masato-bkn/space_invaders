@@ -1,3 +1,40 @@
+// Game configuration constants
+const GAME_CONFIG = {
+    PLAYER: {
+        WIDTH: 50,
+        HEIGHT: 30,
+        SPEED: 5,
+        COLOR: '#0f0',
+        BOTTOM_MARGIN: 60
+    },
+    INVADER: {
+        ROWS: 5,
+        COLS: 10,
+        WIDTH: 40,
+        HEIGHT: 30,
+        SPEED: 1,
+        COLOR: '#f00',
+        SPACING: 10,
+        START_X: 50,
+        START_Y: 50,
+        DROP_DISTANCE: 5,
+        SHOOT_CHANCE: 0.02
+    },
+    BULLET: {
+        WIDTH: 4,
+        HEIGHT: 10,
+        PLAYER_SPEED: 7,
+        INVADER_SPEED: 3,
+        PLAYER_COLOR: '#ff0',
+        INVADER_COLOR: '#f0f'
+    },
+    GAME: {
+        POINTS_PER_INVADER: 10,
+        WALL_BUFFER: 10,
+        PLAYER_COLLISION_BUFFER: 10
+    }
+} as const;
+
 interface GameObject {
     x: number;
     y: number;
@@ -36,12 +73,12 @@ class SpaceInvaders {
         this.ctx = this.canvas.getContext('2d')!;
         
         this.player = {
-            x: this.canvas.width / 2 - 25,
-            y: this.canvas.height - 60,
-            width: 50,
-            height: 30,
-            speed: 5,
-            color: '#0f0'
+            x: this.canvas.width / 2 - GAME_CONFIG.PLAYER.WIDTH / 2,
+            y: this.canvas.height - GAME_CONFIG.PLAYER.BOTTOM_MARGIN,
+            width: GAME_CONFIG.PLAYER.WIDTH,
+            height: GAME_CONFIG.PLAYER.HEIGHT,
+            speed: GAME_CONFIG.PLAYER.SPEED,
+            color: GAME_CONFIG.PLAYER.COLOR
         };
 
         this.initInvaders();
@@ -50,23 +87,15 @@ class SpaceInvaders {
     }
 
     private initInvaders(): void {
-        const rows = 5;
-        const cols = 10;
-        const invaderWidth = 40;
-        const invaderHeight = 30;
-        const spacing = 10;
-        const startX = 50;
-        const startY = 50;
-
-        for (let row = 0; row < rows; row++) {
-            for (let col = 0; col < cols; col++) {
+        for (let row = 0; row < GAME_CONFIG.INVADER.ROWS; row++) {
+            for (let col = 0; col < GAME_CONFIG.INVADER.COLS; col++) {
                 this.invaders.push({
-                    x: startX + col * (invaderWidth + spacing),
-                    y: startY + row * (invaderHeight + spacing),
-                    width: invaderWidth,
-                    height: invaderHeight,
-                    speed: 1,
-                    color: '#f00'
+                    x: GAME_CONFIG.INVADER.START_X + col * (GAME_CONFIG.INVADER.WIDTH + GAME_CONFIG.INVADER.SPACING),
+                    y: GAME_CONFIG.INVADER.START_Y + row * (GAME_CONFIG.INVADER.HEIGHT + GAME_CONFIG.INVADER.SPACING),
+                    width: GAME_CONFIG.INVADER.WIDTH,
+                    height: GAME_CONFIG.INVADER.HEIGHT,
+                    speed: GAME_CONFIG.INVADER.SPEED,
+                    color: GAME_CONFIG.INVADER.COLOR
                 });
             }
         }
@@ -123,7 +152,7 @@ class SpaceInvaders {
         }
 
         // インベーダーがプレイヤーの位置まで到達した場合のみゲームオーバー
-        if (this.invaders.some(invader => invader.y + invader.height >= this.player.y - 10)) {
+        if (this.invaders.some(invader => invader.y + invader.height >= this.player.y - GAME_CONFIG.GAME.PLAYER_COLLISION_BUFFER)) {
             this.gameRunning = false;
             alert('Game Over! Score: ' + this.score);
         }
@@ -131,12 +160,12 @@ class SpaceInvaders {
 
     private shootBullet(): void {
         this.bullets.push({
-            x: this.player.x + this.player.width / 2 - 2,
+            x: this.player.x + this.player.width / 2 - GAME_CONFIG.BULLET.WIDTH / 2,
             y: this.player.y,
-            width: 4,
-            height: 10,
-            speed: 7,
-            color: '#ff0',
+            width: GAME_CONFIG.BULLET.WIDTH,
+            height: GAME_CONFIG.BULLET.HEIGHT,
+            speed: GAME_CONFIG.BULLET.PLAYER_SPEED,
+            color: GAME_CONFIG.BULLET.PLAYER_COLOR,
             isPlayerBullet: true
         });
     }
@@ -149,7 +178,7 @@ class SpaceInvaders {
         if (!this.justTurnedAround && (leftmostInvader <= 0 || rightmostInvader >= this.canvas.width)) {
             // 全てのインベーダーを下に移動し、方向を反転
             this.invaders.forEach(invader => {
-                invader.y += 5;
+                invader.y += GAME_CONFIG.INVADER.DROP_DISTANCE;
             });
             this.invaderDirection *= -1;
             this.justTurnedAround = true;
@@ -161,21 +190,21 @@ class SpaceInvaders {
             });
             
             // インベーダーが壁から離れたら方向転換を再び有効にする
-            if (this.justTurnedAround && leftmostInvader > 10 && rightmostInvader < this.canvas.width - 10) {
+            if (this.justTurnedAround && leftmostInvader > GAME_CONFIG.GAME.WALL_BUFFER && rightmostInvader < this.canvas.width - GAME_CONFIG.GAME.WALL_BUFFER) {
                 this.justTurnedAround = false;
             }
         }
 
         // インベーダーからの弾丸発射（ランダム）
-        if (Math.random() < 0.02) {
+        if (Math.random() < GAME_CONFIG.INVADER.SHOOT_CHANCE) {
             const randomInvader = this.invaders[Math.floor(Math.random() * this.invaders.length)];
             this.bullets.push({
-                x: randomInvader.x + randomInvader.width / 2 - 2,
+                x: randomInvader.x + randomInvader.width / 2 - GAME_CONFIG.BULLET.WIDTH / 2,
                 y: randomInvader.y + randomInvader.height,
-                width: 4,
-                height: 10,
-                speed: 3,
-                color: '#f0f',
+                width: GAME_CONFIG.BULLET.WIDTH,
+                height: GAME_CONFIG.BULLET.HEIGHT,
+                speed: GAME_CONFIG.BULLET.INVADER_SPEED,
+                color: GAME_CONFIG.BULLET.INVADER_COLOR,
                 isPlayerBullet: false
             });
         }
@@ -189,7 +218,7 @@ class SpaceInvaders {
                     if (this.isColliding(bullet, invader)) {
                         this.bullets.splice(bulletIndex, 1);
                         this.invaders.splice(invaderIndex, 1);
-                        this.score += 10;
+                        this.score += GAME_CONFIG.GAME.POINTS_PER_INVADER;
                         this.updateScore();
                     }
                 });
